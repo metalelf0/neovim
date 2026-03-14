@@ -445,6 +445,18 @@ static bool prop_is_emojilike(const utf8proc_property_t *prop)
          || prop->boundclass == UTF8PROC_BOUNDCLASS_REGIONAL_INDICATOR;
 }
 
+/// Returns true if the Unicode codepoint "c" is emoji-like.
+///
+/// This is used to identify characters that most terminals render ignoring
+/// foreground color (e.g., when compositing blended floating windows).
+bool utf_char_is_emojilike(int c)
+{
+  if (c < 0x80) {
+    return false;
+  }
+  return prop_is_emojilike(utf8proc_get_property(c));
+}
+
 /// For UTF-8 character "c" return 2 for a double-width character, 1 for others.
 /// Returns 4 or 6 for an unprintable character.
 /// Is only correct for characters >= 0x80.
