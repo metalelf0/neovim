@@ -22,6 +22,7 @@
 #include "nvim/highlight_group.h"
 #include "nvim/log.h"
 #include "nvim/macros_defs.h"
+#include "nvim/mbyte.h"
 #include "nvim/memory.h"
 #include "nvim/message.h"
 #include "nvim/option_vars.h"
@@ -453,6 +454,16 @@ static void compose_line(Integer row, Integer startcol, Integer endcol, LineFlag
         }
         if (thru) {
           memcpy(linebuf + i, bg_line + i, (size_t)width * sizeof(linebuf[i]));
+          // Most terminals render emoji ignoring foreground color, so blending
+          // via color attributes has no effect on them. Replace emoji that show
+          // through a blended window with spaces to avoid visual artifacts.
+          if (width == 2 && p_emoji) {
+            int c = schar_get_first_codepoint(bg_line[i]);
+            if (utf_char_is_emojilike(c)) {
+              linebuf[i] = schar_from_ascii(' ');
+              linebuf[i + 1] = schar_from_ascii(' ');
+            }
+          }
         }
       }
     }
